@@ -1,10 +1,35 @@
 import express from "express";
-import { Exercise } from "../models/exModel.js";
-const router = express.Router();
+import { PORT, mongoDBURL } from "./config.js";
+import mongoose from "mongoose";
+import { Exercise } from "./models/exModel.js";
+
+const app = express();
+
+// get resources from server
+app.get("/", (req, res) => {
+    // callback
+    // console.log(req);
+    return res.status(234).send('') // http status code
+
+});
+
+app.listen(PORT, () => {
+    console.log(`App is listening to port: ${PORT}`);
+});
+
+mongoose.connect(mongoDBURL)
+    .then(() => {
+        console.log('App connected to db');
+    })
+    .catch((error) => {
+        console.log(error);
+    });
+
+
 
 // http route to save model (POST)
 // request, response; async because db op
-router.post('/', async (req, res) => {
+app.post('/exercises', async (req, res) => {
     try {
         if (
             !req.body.name || !req.body.weight || !req.body.unit || !req.body.repCount
@@ -31,7 +56,7 @@ router.post('/', async (req, res) => {
 });
 
 // http route GET to retrieve exercises from db (get all ex)
-router.get('/', async (req, res) => {
+app.get('/exercises', async (req, res) => {
     try {
         const exercises = await Exercise.find({});
 
@@ -47,7 +72,7 @@ router.get('/', async (req, res) => {
 });
 
 // get exercise from db by id
-router.get('/:id', async (req, res) => {
+app.get('/exercises/:id', async (req, res) => {
     try {
         const { id } = req.params;
         
@@ -62,7 +87,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // update exercise; PUT route
-router.put('/:id', async (req, res) => {
+app.put('/exercises/:id', async (req, res) => {
     try {
         if (
             !req.body.name || !req.body.weight || !req.body.unit || !req.body.repCount
@@ -92,7 +117,7 @@ router.put('/:id', async (req, res) => {
 
 
 // route for deleting
-router.delete('/:id', async (req, res) => {
+app.delete('/exercises/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const result = await Exercise.findByIdAndDelete(id)
@@ -108,5 +133,3 @@ router.delete('/:id', async (req, res) => {
         res.status(500).send({ message: error.message });
     }
 });
-
-export default router;

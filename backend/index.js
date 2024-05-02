@@ -1,47 +1,52 @@
 import express from "express";
-import { PORT, mongoDBURL } from "./config.js";
-import mongoose from "mongoose";
-import { Exercise } from "./models/exModel.js";
-import exerciseRoutes from "./routes/exerciseRoutes.js";
+import * as dotenv from "dotenv";
 import cors from "cors";
+import mongoose from "mongoose";
+import UserRoutes from "./routes/User.js";
+
+dotenv.config();
 
 const app = express();
+app.use(cors());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true })); // for form data
 
-// middleware for parsing request body
-app.use(express.json());
-
-// app.use(cors(
-//     {
-//         origin: 'localhost:3000',
-//         methods: ['GET', 'POST', 'PUT', 'DELETE'],
-//         allowedHeaders: ['Content-Type'],
-//     }
-// ))
-app.use(cors())
-
-// get resources from server
-app.get("/", (req, res) => {
-    // callback
-    console.log(req);
-    return res.status(234).send('') // http status code
-
+app.use("/api/user/", UserRoutes);
+// error handler
+app.use((err, req, res, next) => {
+  const status = err.status || 500;
+  const message = err.message || "Something went wrong";
+  return res.status(status).json({
+    success: false,
+    status,
+    message,
+  });
 });
 
-// use express router
-app.use("/exercises", exerciseRoutes);
-
-// 
-
-app.listen(PORT, () => {
-    console.log(`App is listening to port: ${PORT}`);
+app.get("/", async (req, res) => {
+  res.status(200).json({
+    message: "Hello developers from GFG",
+  });
 });
 
-mongoose.connect(mongoDBURL)
-    .then(() => {
-        console.log('App connected to db');
-    })
-    .catch((error) => {
-        console.log(error);
+const connectDB = () => {
+  mongoose.set("strictQuery", true);
+  mongoose
+    .connect(process.env.MONGODB_URL)
+    .then(() => console.log("Connected to Mongo DB"))
+    .catch((err) => {
+      console.error("failed to connect with mongo");
+      console.error(err);
     });
+};
 
+const startServer = async () => {
+  try {
+    connectDB();
+    app.listen(8080, () => console.log("Server started on port 8080"));
+  } catch (error) {
+    console.log(error);
+  }
+};
 
+startServer();
