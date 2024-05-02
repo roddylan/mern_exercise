@@ -1,0 +1,112 @@
+import express from "express";
+import { Exercise } from "../models/exModel";
+const router = express.Router();
+
+// http route to save model (POST)
+// request, response; async because db op
+router.post('/', async (req, res) => {
+    try {
+        if (
+            !req.body.name || !req.body.weight || !req.body.unit || !req.body.repCount
+        ) {
+            return res.status(400).send({
+                message: "Send all required fields: Exercise name, weight, unit (lb/kg), repCount",
+            });
+        }
+        const newEx = {
+            name: req.body.name,
+            weight: req.body.weight,
+            repCount: req.body.repCount
+        };
+        const ex = await Exercise.create(newEx);
+        return res.status(201).send({
+            message: ex
+        })
+    }
+    catch (error) {
+        console.log(error.message);
+        res.status(500).send({ message: error.message });
+    }
+
+});
+
+// http route GET to retrieve exercises from db (get all ex)
+router.get('/', async (req, res) => {
+    try {
+        const exercises = await Exercise.find({});
+
+        return res.status(200).json({
+            count: exercises.length,
+            data: exercises
+        })
+    }
+    catch (error) {
+        console.log(error.message);
+        res.status(500).send({ message: error.message });
+    }
+});
+
+// get exercise from db by id
+router.get('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const exercise = await Exercise.findById(id);
+
+        return res.status(200).json(exercise)
+    }
+    catch (error) {
+        console.log(error.message);
+        res.status(500).send({ message: error.message });
+    }
+});
+
+// update exercise; PUT route
+router.put('/:id', async (req, res) => {
+    try {
+        if (
+            !req.body.name || !req.body.weight || !req.body.unit || !req.body.repCount
+        ) {
+            return res.status(400).send({
+                message: "Send all required fields: Exercise name, weight, unit (lb/kg), repCount",
+            });
+        }
+
+        const { id } = req.params;
+
+        const result = await Exercise.findByIdAndUpdate(id, req.body);
+
+        if (!result) {
+            return res.status(404).send({
+                message: "Exercise not found",
+            });
+        }
+
+        return res.status(200).send({ message: "Exercise update successfully" });
+    }
+    catch (error) {
+        console.log(error.message);
+        res.status(500).send({ message: error.message });
+    }
+});
+
+
+// route for deleting
+router.delete('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await Exercise.findByIdAndDelete(id)
+
+        if (!result) {
+            res.status(404).send({ message: "Exercise not found" })
+        }
+        
+        return res.status(200).send({ message: "Exercise successfully deleted" })
+    }
+    catch (error) {
+        console.log(error.message);
+        res.status(500).send({ message: error.message });
+    }
+});
+
+export default router;
