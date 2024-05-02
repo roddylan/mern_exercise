@@ -1,5 +1,5 @@
 import express from "express";
-import { Exercise } from "../models/exModel";
+import { Exercise } from "../models/exModel.js";
 const router = express.Router();
 
 // http route to save model (POST)
